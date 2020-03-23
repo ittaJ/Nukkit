@@ -103,7 +103,7 @@ public class EntityItem extends Entity {
         }
 
         this.item = NBTIO.getItemHelper(this.namedTag.getCompound("Item"));
-        this.setDataFlag(DATA_FLAGS, DATA_FLAG_IMMOBILE, true);
+        this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY, true);
 
         this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
     }
@@ -111,10 +111,12 @@ public class EntityItem extends Entity {
     @Override
     public boolean attack(EntityDamageEvent source) {
         return (source.getCause() == DamageCause.VOID ||
+                source.getCause() == DamageCause.CONTACT ||
                 source.getCause() == DamageCause.FIRE_TICK ||
-                source.getCause() == DamageCause.ENTITY_EXPLOSION ||
-                source.getCause() == DamageCause.BLOCK_EXPLOSION)
-                && super.attack(source);
+                (source.getCause() == DamageCause.ENTITY_EXPLOSION ||
+                source.getCause() == DamageCause.BLOCK_EXPLOSION) &&
+                !this.isInsideOfWater() && (this.item == null ||
+                this.item.getId() != Item.NETHER_STAR)) && super.attack(source);
     }
 
     @Override
@@ -133,7 +135,7 @@ public class EntityItem extends Entity {
 
         this.timing.startTiming();
         
-        if (this.onGround && this.getItem() != null && this.isAlive()) {
+        if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < this.getItem().getMaxStackSize()) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityItem) {
@@ -158,9 +160,8 @@ public class EntityItem extends Entity {
                         packet.data = newAmount;
                         packet.event = EntityEventPacket.MERGE_ITEMS;
                         Server.broadcastPacket(this.getLevel().getPlayers().values(), packet);
-                       }
+                    }
                 }
-
             }
         }
 

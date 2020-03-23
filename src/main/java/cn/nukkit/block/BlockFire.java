@@ -131,7 +131,7 @@ public class BlockFire extends BlockFlowable {
 
                 if (meta < 15) {
                     int newMeta = meta + random.nextInt(3);
-                    this.setDamage(newMeta > 15 ? 15 : newMeta);
+                    this.setDamage(Math.min(newMeta, 15));
                     this.getLevel().setBlock(this, this, true);
                 }
 
@@ -300,7 +300,7 @@ public class BlockFire extends BlockFlowable {
 
     @Override
     public BlockColor getColor() {
-        return BlockColor.AIR_BLOCK_COLOR;
+        return BlockColor.LAVA_BLOCK_COLOR;
     }
 
     @Override
